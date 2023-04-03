@@ -1,0 +1,86 @@
+import tkinter as tk
+from tkinter import messagebox
+import mysql.connector
+import tkinter.font as font
+
+connection = mysql.connector.connect(
+    host = 'localhost',
+    user = 'root',
+    password = '',
+    database = 'biarneza'
+)
+
+c = connection.cursor()
+root = tk.Tk()
+root.geometry("210x150")
+root.config(bg="#000000")
+myFont = font.Font(family="OCR A Extended", size=9)
+
+class loginForm:
+    def __init__(self, master):
+        self.master = master
+    # Labels
+        self.frame = tk.Frame(self.master, bg = "#000000")
+        self.btnsFrame = tk.Frame(self.frame, bg = "#000000", padx=25, pady=5)
+        self.windowTitle = tk.Label(self.frame, text ="Login Window", bg="#000000", fg="#00FF00")
+        self.usernameLabel = tk.Label(self.frame, text="Username: ", bg="#000000", fg="#00FF00")
+        self.usernameTextbox = tk.Entry(self.frame)
+        self.passwordLabel = tk.Label(self.frame, text='Password: ', bg="#000000", fg="#00FF00")
+        self.passwordTextbox = tk.Entry(self.frame, show='*')
+        self.btnLogin = tk.Button(self.btnsFrame, text='Login', command=self.login_func, bg="#000000", fg="#00FF00", height=2, width=10)
+        self.btnRegister = tk.Button(self.btnsFrame, text='Add', command=self.register_user, bg="#000000", fg="#00FF00", height=2, width=10)
+
+        #Placing labels
+        self.frame.pack(fill='both')
+        self.windowTitle.grid(row=0, column=0, columnspan=2, pady=5)
+        self.usernameLabel.grid(row=1,column=0)
+        self.usernameTextbox.grid(row=1, column=1)
+        self.passwordLabel.grid(row=2, column=0, pady=(10,0))
+        self.passwordTextbox.grid(row=2, column=1,pady=(10,0))
+        self.btnsFrame.grid(row=3, column=0, columnspan=10, pady=5)
+        self.btnLogin.grid(row=0, column=0, padx=(0, 8))
+        self.btnRegister.grid(row=0, column=1)
+
+        self.windowTitle['font'] = myFont
+        self.usernameLabel['font'] = myFont
+        self.passwordLabel['font'] = myFont
+        self.btnLogin['font'] = myFont
+        self.btnRegister['font'] = myFont
+
+    def register_user(self):
+        username = self.usernameTextbox.get()
+        password = self.passwordTextbox.get()
+        select_query = 'INSERT INTO data (username, password) VALUES (%s, %s)'
+        vals = (username, password)
+        c.execute(select_query, vals)
+        c.execute("commit")
+        messagebox.showinfo("Status", "Successfully registered")
+        self.usernameTextbox.delete("0", "end")
+        self.passwordTextbox.delete("0", "end")
+
+    #creating a function to login
+    def login_func(self):
+        username = self.usernameTextbox.get()
+        password = self.passwordTextbox.get()
+        select_query = 'SELECT * FROM data WHERE username = %s and password = %s'
+        vals = (username, password)
+        c.execute(select_query, vals)
+
+        #print(c.fetchone())
+        user = c.fetchone()
+        if user is not None:
+            print("Access Granted")
+            messagebox.showinfo("Access Granted", "Welcome " + str(username))
+            self.usernameTextbox.delete("0", "end")
+            self.passwordTextbox.delete("0", "end")
+        else:
+            messagebox.showwarning("Error, ", "Enter a valid username & password")
+            self.usernameTextbox.delete("0", "end")
+            self.passwordTextbox.delete("0", "end")
+
+def main():
+    login_window = loginForm(root)
+    root.mainloop()
+
+if __name__ == '__main__':
+    main()
